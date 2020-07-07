@@ -1,7 +1,6 @@
 # Neuron.eye
-Process the wave
 
-Neuron is based on eye tracking technology written in javascript. It will continously recalibrate through mouse clicks and after the video is over it will create a heatmap of where the sight was focused. 
+Neuron.eye is based on eye tracking technology written in javascript. It will continously recalibrate through mouse clicks and after the video is over it will create a heatmap of where the sight was focused. 
 
 ## How to Run
 ```sh
