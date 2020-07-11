@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <title>NeuroClarity | Video Players </title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="../webgazer.js" type="text/javascript"></script>
+    <script src=”../simpleheat.js”></script>
+
+    <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <script async type="text/javascript" src="./webgazer.js"></script> <!--  #TODO: how to turn off the red dot -->
+    <script type="text/javascript">
+
+        function switchToVideo() {
+            calibrationScreen = document.getElementById("calibration-screen")
+            calibrationScreen.style.display = "none";
+
+            videoScreen = document.getElementById("video-screen");
+            videoScreen.style.display = "block";
+        }
+    </script>
+
+    <script>
+        function change() {
+            webgazer.showVideo(true)
+            webgazer.showFaceOverlay(true)
+            webgazer.showPredictionPoints(true)
+
+
+            // Kalman Filter defaults to on.
+            window.applyKalmanFilter = true;
+
+            // Set to true if you want to save the data even if you reload the page.
+            window.saveDataAcrossSessions = true;
+
+            window.onload = async function() {
+
+              if (!window.saveDataAcrossSessions) {
+                  var localstorageDataLabel = 'webgazerGlobalData';
+                  localforage.setItem(localstorageDataLabel, null);
+                  var localstorageSettingsLabel = 'webgazerGlobalSettings';
+                  localforage.setItem(localstorageSettingsLabel, null);
+              }
+
+              const webgazerInstance = await webgazer.setRegression('ridge') /* currently must set regression and tracker */
+              .setTracker('TFFacemesh')
+              .begin();
+              webgazerInstance.showPredictionPoints(false); /* shows a square every 100 milliseconds where current prediction is */
+
+            };
+
+            window.onbeforeunload = function() {
+              if (window.saveDataAcrossSessions) {
+                  webgazer.end();
+              } else {
+                  localforage.clear();
+              }
+            }
+        }
+
+    </script>
+
+</head>
+
+<body>
+
+<div id="calibration-screen">
+
+  <canvas id="plotting_canvas" width="500" height="500" style="cursor:crosshair;"></canvas>
+
+    <script src="./node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="./node_modules/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script src="./js/main.js"></script>
+    <script src="./js/calibration.js"></script>
+    <script src="./js/precision_calculation.js"></script>
+    <script src="./js/precision_store_points.js"></script>
+
+    <nav id="webgazerNavbar" class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+
+        <div class="collapse navbar-collapse" id="myNavbar">
+          <ul class="nav navbar-nav">
+            <!-- Accuracy -->
+            <li id="Accuracy"><a>Not yet Calibrated</a></li>
+            <li onclick="Restart()"><a href="#">Recalibrate</a></li>
+          <li onclick="window.applyKalmanFilter = !window.applyKalmanFilter"><a href="#">Toggle Kalman Filter</a></li>
+          </ul>
+
+        </div>
+      </div>
+    </nav>
+    <!-- Calibration points -->
+    <div class="calibrationDiv">
+        <input type="button" class="Calibration" id="Pt1"></input>
+        <input type="button" class="Calibration" id="Pt2"></input>
+        <input type="button" class="Calibration" id="Pt3"></input>
+        <input type="button" class="Calibration" id="Pt4"></input>
+        <input onclick="switchToVideo(); change();" type="button" class="Calibration" id="Pt5"></input>
+        <input type="button" class="Calibration" id="Pt6"></input>
+        <input type="button" class="Calibration" id="Pt7"></input>
+        <input type="button" class="Calibration" id="Pt8"></input>
+        <input type="button" class="Calibration" id="Pt9"></input>
+    </div>
+
+    <!-- Modal -->
+    <div id="helpModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-body">
+            <img src="media/example/calibration.png" width="100%" height="100%" alt="webgazer demo instructions"></img>
+          </div>
+          <div class="modal-footer">
+            <button id="closeBtn" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="Restart()">Calibrate</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="./js/resize_canvas.js"></script>
+    <script src="./node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script>
+    </script>
+
+</div>
+
+
+<div id="video-screen">
+  <div class=topbar>
+      <button type="button"> Back to Tasks </button>
+  </div>
+  <div id="title">
+      <h2> NeuroClarity | Video Player </h2>
+  </div>
+  <div id="video-player">
+      <video src="1984.mp4" width=60% height=auto controls> Your browswer does not support video </video>
+  </div>
+  <div class="feedback">
+  </div>
+  <div class="footer">
+  </div>
+
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+
+  <script src="./webgazer.js"></script>
+
+
+</div>
+</body>
+</html>
