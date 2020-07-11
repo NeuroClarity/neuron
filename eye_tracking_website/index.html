@@ -45,19 +45,12 @@
               }
 
               const webgazerInstance = await webgazer.setRegression('ridge') /* currently must set regression and tracker */
-              .setTracker('TFFacemesh')
+              .setTracker('clmtrackr')
               .begin();
               webgazerInstance.showPredictionPoints(false); /* shows a square every 100 milliseconds where current prediction is */
 
             };
 
-            window.onbeforeunload = function() {
-              if (window.saveDataAcrossSessions) {
-                  webgazer.end();
-              } else {
-                  localforage.clear();
-              }
-            }
         }
 
     </script>
