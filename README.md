@@ -1,7 +1,7 @@
 # Neuron
 
 
-## Neuron.eye_tracking_website
+## neuron.eye_tracking_website
 
 Neuron.eye is based on eye tracking technology written in javascript. It will continously recalibrate through mouse clicks and after the video is over it will create a heatmap of where the sight was focused. 
 
@@ -15,7 +15,7 @@ npm install
 browser-sync start --server --files "*"
 ```
 
-## Neuron.eeg_ml_models
+## neuron.eeg_ml_models
 This is where the finished ML models go. 
 
 
