@@ -1,25 +1,22 @@
 import threading
 import time
-from messaging.rabbit_thread import RabbitThread
-from messaging.rabbit_config import RabbitQueue
+import boto3
+from messaging.queue_thread import QueueThread
+from messaging.queue_types import QueueName
 
-RABBIT_HOST = ""
-RABBIT_PORT = 5672
-# these will be configured via environment variables at a later time
-RABBIT_USERNAME = ""
-RABBIT_PASSWORD = ""
+session = boto3.session.Session(region_name="us-west-1")
 
 def start_thread(queue):
-    thread = RabbitThread(RABBIT_USERNAME, RABBIT_PASSWORD, RABBIT_HOST, RABBIT_PORT, queue)
+    thread = QueueThread(session, queue)
     thread.start()
     return thread
 
 if __name__ == '__main__':
     threads = []
     # start eye tracking consumer
-    threads.append(start_thread(RabbitQueue.EYE_TRACKING))
+    threads.append(start_thread(QueueName.EYE_TRACKING))
     # start eeg consumer
-    threads.append(start_thread(RabbitQueue.EEG))
+    threads.append(start_thread(QueueName.EEG))
 
     # consume forever
     while True:
