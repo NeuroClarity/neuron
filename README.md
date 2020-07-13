@@ -1,5 +1,11 @@
 # Neuron
 
+##  Queue Local Dev
+
+  * Configure venv with python version `3.6`
+  * `pip install -r requirements.txt`
+  * `python main.py`
+
 
 ## neuron.eye_tracking_website
 
