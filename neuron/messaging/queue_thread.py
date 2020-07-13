@@ -1,17 +1,11 @@
-import threading
 import time
 import json
 import boto3
-from .queue_types import QueueName
 import sys
-print(__file__)
-sys.path.insert(0, '/Users/alfredoanderejr/Desktop/Brain/neuron')
-print(sys.path)
-from queue_types import QueueName
-from eeg_ml_models.final_classifier import Final_classifier
+import threading
 import numpy as np
-
-
+from neuron.analytics.eeg import EegClassifier
+from .queue_types import QueueName
 
 S3_RAW_DATA_BUCKET = "nc-reviewer-raw-data"
 S3_RESULTS_BUCKET = "nc-review-results"
@@ -22,11 +16,11 @@ class QueueThread(threading.Thread):
         self.sqs = aws_session.client('sqs')
         self.queueUrl = self.sqs.get_queue_url(QueueName=queue.value)['QueueUrl']
         self.s3 = aws_session.client('s3')
+        # TODO: this will likely need to be replaced with facial encoding
         if queue == QueueName.EYE_TRACKING:
             self.processor = lambda x: x
         elif queue == QueueName.EEG:
-            classifier = Final_classifier()
-            self.processor = classifier.predict
+            self.processor = EegClassifier().predict
 
     def run(self):
         print("Started consuming from queue", self.queueUrl)
