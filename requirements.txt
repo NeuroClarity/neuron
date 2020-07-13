@@ -16,4 +16,14 @@ s3transfer==0.3.3
 six==1.15.0
 ujson==1.35
 urllib3==1.25.9
+distlib==0.3.0
+filelock==3.0.12
+jedi==0.17.1
+parso==0.7.0
+pika==1.1.0
+pluggy==0.13.1
+python-jsonrpc-server==0.3.4
+python-language-server==0.33.3
+six==1.15.0
+ujson==1.35
 virtualenv==20.0.23
