@@ -1,23 +1,33 @@
+import sys
+print(__file__)
+sys.path.insert(0, '/Users/alfredoanderejr/Desktop/Brain/neuron')
+print(sys.path)
 import threading
 import time
 import json
-import boto3
-from .queue_types import QueueName
+#import boto3
+from queue_types import QueueName
+from eeg_ml_models.final_classifier import Final_classifier
+import numpy as np
+
+
 
 S3_RAW_DATA_BUCKET = "nc-reviewer-raw-data"
 S3_RESULTS_BUCKET = "nc-review-results"
 
 class QueueThread(threading.Thread):
+
     def __init__(self, aws_session, queue):
         super(QueueThread, self).__init__()
         self.sqs = aws_session.client('sqs')
         self.queueUrl = self.sqs.get_queue_url(QueueName=queue.value)['QueueUrl']
         self.s3 = aws_session.client('s3')
-        # TODO: This needs to be changed to the appropriate neuron classifier 
-        if queue == QueueName.EYE_TRACKING: 
-            self.processor = lambda x: x 
-        elif queue == QueueName.EEG: 
-            self.processor = lambda x: x 
+        # TODO: This needs to be changed to the appropriate neuron classifier
+        if queue == QueueName.EYE_TRACKING:
+            self.processor = lambda x: x
+        elif queue == QueueName.EEG:
+            classifier = Final_classifier()
+            self.processor = classifier.predict
 
     def run(self):
         print("Started consuming from queue", self.queueUrl)
@@ -42,6 +52,7 @@ class QueueThread(threading.Thread):
         data = self.get_data_from_key(key)
         if not data:
             return
+
         # process data in neuron
         results = self.processor(data)
         # write results to S3
