@@ -13,14 +13,15 @@ A CNN based pytorch implementation on facial expression recognition (FER2013 and
 - sklearn (plot confusion matrix)
 
 ## Use the model for Inference ##
-- Firstly, download the pre-trained model from https://drive.google.com/drive/u/0/folders/1aXD-mZDYMStIAuHFQOLF6Ug7m5F_zbMi and then put it in the base folder; Next, Put the test image (rename as 1.jpg) into the "images" folder, then 
+- Firstly, download the pre-trained model from https://drive.google.com/drive/u/0/folders/1aXD-mZDYMStIAuHFQOLF6Ug7m5F_zbMi and then put it in the base folder; Next,
 
 ```
+    from nc_face_emotion_model import Emotion_model
     model = Emotion_model()
     score, predicted = model.video_predictor("your_video.mp4")
 ```
 
-## FER2013 Dataset (TRAINING) ##
+## FER2013 Dataset (Used for Training) ##
 - Dataset from https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data
 Image Properties: 48 x 48 pixels (2304 bytes)
 labels: 0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral
