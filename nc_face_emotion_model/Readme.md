@@ -16,9 +16,9 @@ A CNN based pytorch implementation on facial expression recognition (FER2013 and
 - Firstly, download the pre-trained model from https://drive.google.com/drive/u/0/folders/1aXD-mZDYMStIAuHFQOLF6Ug7m5F_zbMi and then put it in the base folder; Next,
 
 ```
-    from nc_face_emotion_model import Emotion_model
-    model = Emotion_model()
-    score, predicted = model.video_predictor("your_video.mp4")
+from nc_face_emotion_model.predictor import Emotion_model
+model = Emotion_model()
+score, predicted = model.video_predictor("your_video.mp4")
 ```
 
 ## FER2013 Dataset (Used for Training) ##
