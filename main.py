@@ -1,8 +1,8 @@
 import threading
 import time
 import boto3
-from messaging.queue_thread import QueueThread
-from messaging.queue_types import QueueName
+from neuron.messaging import QueueThread
+from neuron.messaging import QueueName
 
 session = boto3.session.Session(region_name="us-west-1")
 

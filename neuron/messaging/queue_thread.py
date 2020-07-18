@@ -1,33 +1,26 @@
-import sys
-print(__file__)
-sys.path.insert(0, '/Users/alfredoanderejr/Desktop/Brain/neuron')
-print(sys.path)
-import threading
 import time
 import json
-#import boto3
-from queue_types import QueueName
-from eeg_ml_models.final_classifier import Final_classifier
+import boto3
+import sys
+import threading
 import numpy as np
-
-
+from neuron.analytics.eeg import EegClassifier
+from .queue_types import QueueName
 
 S3_RAW_DATA_BUCKET = "nc-reviewer-raw-data"
 S3_RESULTS_BUCKET = "nc-review-results"
 
 class QueueThread(threading.Thread):
-
     def __init__(self, aws_session, queue):
         super(QueueThread, self).__init__()
         self.sqs = aws_session.client('sqs')
         self.queueUrl = self.sqs.get_queue_url(QueueName=queue.value)['QueueUrl']
         self.s3 = aws_session.client('s3')
-        # TODO: This needs to be changed to the appropriate neuron classifier
+        # TODO: this will likely need to be replaced with facial encoding
         if queue == QueueName.EYE_TRACKING:
             self.processor = lambda x: x
         elif queue == QueueName.EEG:
-            classifier = Final_classifier()
-            self.processor = classifier.predict
+            self.processor = EegClassifier().predict
 
     def run(self):
         print("Started consuming from queue", self.queueUrl)
@@ -52,7 +45,6 @@ class QueueThread(threading.Thread):
         data = self.get_data_from_key(key)
         if not data:
             return
-
         # process data in neuron
         results = self.processor(data)
         # write results to S3
@@ -60,12 +52,7 @@ class QueueThread(threading.Thread):
         self.sqs.delete_message(self.queueUrl, messages['ReceiptHandle'])
 
     def get_data_from_key(self, key):
-        try:
-            return self.s3.get_object(Bucket=S3_RAW_DATA_BUCKET, Key=key)
-        except botocore.errorfactory.NoSuchKey:
-            print("ERROR: Cannot find key {}".format(key))
-        return None
-
+        return self.s3.get_object(Bucket=S3_RAW_DATA_BUCKET, Key=key)
 
     def publish_results_to_s3(self, old_key, results):
         key = self._get_results_key_from_data_key(old_key)
