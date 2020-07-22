@@ -1,6 +1,6 @@
 /venv
-*/__pycache__/*
-nc_face_emotion_model/PrivateTest_model.t7 
-nc_face_emotion_model/video67.mp4
-neuron.egg-info
-.*swp
+__pycache__/
+*.swp
+
+*.t7 
+*.mp4
