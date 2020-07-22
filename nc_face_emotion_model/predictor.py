@@ -123,14 +123,16 @@ class Emotion_model():
                 predicted - A list of strings of same length as score.dim1 and each string representents the 
                     emotion with the highest probability at that point in time. 
         """
-
-        vid = cv2.VideoCapture(video_file)
+        if type(video_file) == type("string"):
+            vid = cv2.VideoCapture(video_file)
+        else:
+            vid = video_file
+    
         length = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
 
         i=0
         score = []
         predicted = []
-
         for _ in range(length):
             # Capture the video frame 
             ret, frame = vid.read()
@@ -144,6 +146,8 @@ class Emotion_model():
                 predicted.append(t_predicted)
             i+=1
         score = np.array(score)
+
+        np.save("example_emotion_face_data.npy", score)
         return score, predicted
 
 
@@ -157,5 +161,3 @@ def main():
     print("types:", type(score), type(predicted))
     print(score.shape, len(predicted))
     assert(score.shape[0] == len(predicted))
-
-main()
