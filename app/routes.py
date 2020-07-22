@@ -1,23 +1,31 @@
 from flask import Flask, request, jsonify
 from app.analytics.facial_encoding.classifier import EmotionModel
 from app.analytics.eye_tracking.video_heatmap import Heatmap
+from app.infra.storage.s3 import S3
 
 app = Flask(__name__)
+
+# instantiate models
+heatmap_model = Heatmap()
+emotion_model = EmotionModel() 
+
+# define infra 
+s3 = S3("us-west-1")
 
 @app.route('/api/video/heatmap', methods=['POST'])
 def generate_heatmap():
     s3 = boto3.resource('s3')
 
     json_data = request.get_json()
-    print(json_data)
+    print("Received incoming request:", json_data)
+
     video_path = json_data['videoKey']
     video_file = json_data['eye_gaze_data']
 
     video_file = "FILLER" # TODO: This should be pulling from S3
     eye_gaze_array = "FILLER" # TODO: This should be pulling from S3
 
-    model = Heatmap()
-    score, predicted = model.generate_heatmap(video_file, eye_gaze_array)
+    score, predicted = heatmap_model.generate_heatmap(video_file, eye_gaze_array)
 
     emotion_response = {'emotion': {
                         'embedding': score,
@@ -34,13 +42,12 @@ def generate_heatmap():
 def classify_emotion():
 
     json_data = request.get_json()
-    print(json_data)
-    video_path = json_data['dataKey'] 
+    print("Received incoming request:", json_data)
 
+    video_path = json_data['dataKey'] 
     video_file = "FILLER" # TODO: This should be pulling from S3 with video_path
 
-    model = EmotionModel() 
-    score, predicted = model.classify_video(video_file)
+    score, predicted = emotion_model.classify_video(video_file)
 
     save_path = 'sample_output.npy'
     #np.save(save_path, score) # This should save the video to save_path path to S3
