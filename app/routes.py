@@ -1,42 +1,52 @@
 from flask import Flask, request, jsonify
 from app.analytics.facial_encoding.classifier import EmotionModel
 from app.analytics.eye_tracking.video_heatmap import Heatmap
-from app.infra.storage.s3 import S3
+from app.infra.storage.storage import S3
+from app import app
+from numpy import genfromtxt
 
-app = Flask(__name__)
+import json
+import cv2
+
+
+
 
 # instantiate models
 heatmap_model = Heatmap()
-emotion_model = EmotionModel() 
+emotion_model = EmotionModel()
 
-# define infra 
+# define infra
 s3 = S3("us-west-1")
 
 @app.route('/api/video/heatmap', methods=['POST'])
 def generate_heatmap():
-    s3 = boto3.resource('s3')
 
     json_data = request.get_json()
     print("Received incoming request:", json_data)
 
-    video_path = json_data['videoKey']
-    video_file = json_data['eye_gaze_data']
+    video_key = json_data['videoKey']
+    eye_gaze_key = json_data['eyeGazeKey']
 
-    video_file = "FILLER" # TODO: This should be pulling from S3
-    eye_gaze_array = "FILLER" # TODO: This should be pulling from S3
+    video_file_path = "./download2.mp4"
+    eye_gaze_path = "./download.csv"
 
-    score, predicted = heatmap_model.generate_heatmap(video_file, eye_gaze_array)
+    s3.download_original_video(video_key, video_file_path)
+    s3.download_eye_tracking_data(eye_gaze_key, eye_gaze_path)
 
-    emotion_response = {'emotion': {
-                        'embedding': score,
-                        'emotion': predicted
-                        },
-    }
+    eye_gaze_array = genfromtxt(eye_gaze_path, delimiter=' ')
 
-    data = open(video_path, 'rb')
-    s3.Bucket('my-bucket').put_object(Key='videoKeyHeatmap.jpg', Body=data) # Edit to work specifically with s3
+    video_save_path = heatmap_model.generate_heatmap(video_file_path, eye_gaze_array)
 
-    return jsonify(emotion_response)
+    #data = cv2.VideoCapture(video_save_path)
+    print("checkpoint1")
+    #data = {"heatmap": data}
+    with open(video_save_path, 'rb') as f:
+        print(f)
+        s3.upload_heatmap(json_data["destinationKey"], f)
+
+    return "success"
+
+
 
 @app.route('/api/video/emotion', methods=['POST'])
 def classify_emotion():
@@ -44,22 +54,28 @@ def classify_emotion():
     json_data = request.get_json()
     print("Received incoming request:", json_data)
 
-    video_path = json_data['dataKey'] 
-    video_file = "FILLER" # TODO: This should be pulling from S3 with video_path
+    video_key = json_data['videoKey']
 
-    score, predicted = emotion_model.classify_video(video_file)
+    video_file_path = "./download.mp4"
+
+    s3.download_original_video(video_key, video_file_path)
+
+    score, _ = emotion_model.classify_video(video_file_path)
 
     save_path = 'sample_output.npy'
-    #np.save(save_path, score) # This should save the video to save_path path to S3
-    emotion_response = {'emotion': {
-                        'embedding_path': save_path,
-                        'emotion': predicted
-                        },
-    }
 
-    return jsonify(emotion_response)
+    emotion_response = {'embedding': [i.tolist() for i in score]}
+    emotion_response = json.dumps(emotion_response)
+
+    print("here")
+    s3.upload_emotion(json_data["destinationKey"], emotion_response)
+    return emotion_response
+
+
 
 def main():
+
+
     # Upload a new file
-    data = open('test.jpg', 'rb')
-    s3.Bucket('my-bucket').put_object(Key='test.jpg', Body=data)
+    data_key_1 = 'dev-testing/IMG_1980.m4v'
+    data_key_2 = 'testing/sample_eye_data.csv'

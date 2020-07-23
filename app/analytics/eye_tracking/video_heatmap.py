@@ -26,9 +26,14 @@ class Heatmap():
             points=eye_gaze_array
         )
 
-        heatmap_video.write_videofile('out.mp4', bitrate="5000k", fps=24) # TODO: This should actually be saving to S3
+        video_save_path = 'out.mp4'
+
+        heatmap_video.write_videofile(video_save_path, bitrate="5000k", fps=24) # TODO: This should actually be saving to S3
+
+        return video_save_path
 
 
+# TEST
 def main():
     from numpy import genfromtxt
     my_data = genfromtxt('sample_eye_data.csv', delimiter=' ')

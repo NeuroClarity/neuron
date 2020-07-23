@@ -13,7 +13,7 @@ import torch.nn.functional as F
 import os
 from torch.autograd import Variable
 
-import app.analytics.facial_encoding.transforms
+from app.analytics.facial_encoding.transforms import transforms
 from app.analytics.facial_encoding.models import *
 
 from skimage import io
@@ -23,13 +23,13 @@ from skimage.transform import resize
 
 
 class EmotionModel():
-    """ Emotion model takes in a picture, recognizes a face within the picture, and predicts what type of 
-        emotion that face conveys between 'Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral'. 
+    """ Emotion model takes in a picture, recognizes a face within the picture, and predicts what type of
+        emotion that face conveys between 'Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral'.
 
     """
 
     def __init__(self):
-        
+
         self.net = VGG('VGG19')
         checkpoint = torch.load('PrivateTest_model.t7', map_location=torch.device('cpu'))
         self.net.load_state_dict(checkpoint['net'])
@@ -44,7 +44,7 @@ class EmotionModel():
     def forward(self, frame):
         """ forward runs a forward pass though the model
             Input:
-                frame - a picture of variable size with a face on it. 
+                frame - a picture of variable size with a face on it.
             Output:
                 score - NumPy array where each value represents the probaility of each of hte 7 possible emotions
                 predicted - A string representing the emotion with the highest probaility.
@@ -65,7 +65,7 @@ class EmotionModel():
         for (x, y, w, h) in faces:
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             image = image[y:y + h, x:x + w]
-        
+
 
         cut_size = 48
 
@@ -77,7 +77,7 @@ class EmotionModel():
 
         def rgb2gray(rgb):
             return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
-        
+
         if len(image)<5 or len(faces)==0:
             return self.past_score, self.past_predicted
 
@@ -92,7 +92,7 @@ class EmotionModel():
         inputs = transform_test(img)
 
 
-    
+
         ncrops, c, h, w = np.shape(inputs)
 
         inputs = inputs.view(-1, c, h, w)
@@ -122,26 +122,26 @@ class EmotionModel():
             Output:
                 score - time series NumPy array where columns (dim 1) represents the 7 possible emotions
                     and the rows (dim 0) represent the proability of each emotion over time.
-                predicted - A list of strings of same length as score.dim1 and each string representents the 
-                    emotion with the highest probability at that point in time. 
+                predicted - A list of strings of same length as score.dim1 and each string representents the
+                    emotion with the highest probability at that point in time.
         """
         if type(video_file) == type("string"):
             vid = cv2.VideoCapture(video_file)
         else:
-            vid = video_file
-    
+            vid = cv2.VideoCapture(video_file)
+
         length = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
 
         i=0
         score = []
         predicted = []
         for _ in range(length):
-            # Capture the video frame 
+            # Capture the video frame
             ret, frame = vid.read()
             if ret == False:
                 break
 
-            if not i % 5:
+            if not i % 20:
 
                 t_score, t_predicted = self.forward(frame)
                 score.append(np.array(t_score))
@@ -149,7 +149,6 @@ class EmotionModel():
             i+=1
         score = np.array(score)
 
-        np.save("./sample_data/example_emotion_face_data.npy", score)
         return score, predicted
 
 
