@@ -7,6 +7,8 @@ RUN python3 -m venv $VIRTUAL_ENV
 COPY requirements.txt .
 RUN source /opt/venv/bin/activate && pip install -r requirements.txt
 
+# need to download the model weights
+
 COPY . /neuron
 WORKDIR /neuron
 

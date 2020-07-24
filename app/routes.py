@@ -37,9 +37,6 @@ def generate_heatmap():
 
     video_save_path = heatmap_model.generate_heatmap(video_file_path, eye_gaze_array)
 
-    #data = cv2.VideoCapture(video_save_path)
-    print("checkpoint1")
-    #data = {"heatmap": data}
     with open(video_save_path, 'rb') as f:
         print(f)
         s3.upload_heatmap(json_data["destinationKey"], f)
@@ -67,7 +64,6 @@ def classify_emotion():
     emotion_response = {'embedding': [i.tolist() for i in score]}
     emotion_response = json.dumps(emotion_response)
 
-    print("here")
     s3.upload_emotion(json_data["destinationKey"], emotion_response)
     return emotion_response
 

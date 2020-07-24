@@ -20,7 +20,7 @@ from skimage import io
 from skimage.transform import resize
 
 
-
+MODEL_PATH = "./app/analytics/facial_encoding/weights/PrivateTest_model.t7"
 
 class EmotionModel():
     """ Emotion model takes in a picture, recognizes a face within the picture, and predicts what type of
@@ -31,7 +31,7 @@ class EmotionModel():
     def __init__(self):
 
         self.net = VGG('VGG19')
-        checkpoint = torch.load('PrivateTest_model.t7', map_location=torch.device('cpu'))
+        checkpoint = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
         self.net.load_state_dict(checkpoint['net'])
         self.net.eval()
 
