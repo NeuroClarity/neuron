@@ -16,11 +16,18 @@ emotion_model = EmotionModel()
 
 # define infra
 s3 = S3("us-west-1")
-logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='app.log', filemode='w',
+                    format='%(name)s - %(levelname)s - %(message)s')
 
 # Job Pool
 NUM_THREADS = 2
 thread_executor = ThreadPoolExecutor(NUM_THREADS)
+
+
+@app.route('/api/ping', methods=['GET'])
+def ping():
+    return {"Success": True}
+
 
 @app.route('/api/video/heatmap', methods=['POST'])
 def generate_heatmap():
@@ -38,22 +45,27 @@ def generate_heatmap():
         eye_gaze_array = genfromtxt(eye_gaze_path, delimiter=' ')
 
         destination_key = json_data["destinationKey"]
-        thread_executor.submit(generate_heatmap_task, video_file_path, eye_gaze_array, destination_key)
+        thread_executor.submit(generate_heatmap_task,
+                               video_file_path, eye_gaze_array, destination_key)
     except Exception as e:
-        logging.error("Heatmap failed to generate due to the following error: " + e)
+        logging.error(
+            "Heatmap failed to generate due to the following error: " + e)
         return {"Success": False}
 
     return {"Success": True}
 
+
 def generate_heatmap_task(video_file_path, eye_gaze_data, destination_key):
     try:
-        video_save_path = heatmap_model.generate_heatmap(video_file_path, eye_gaze_array)
+        video_save_path = heatmap_model.generate_heatmap(
+            video_file_path, eye_gaze_array)
         with open(video_save_path, 'rb') as f:
             s3.upload_heatmap(destination_key, f)
     except Exception as e:
         logging.error(e)
 
     return
+
 
 @app.route('/api/video/emotion', methods=['POST'])
 def classify_emotion():
@@ -64,14 +76,17 @@ def classify_emotion():
 
         video_file_path = "./download.mp4"
         s3.download_original_video(video_key, video_file_path)
-        
+
         destination_key = json_data["destinationKey"]
-        thread_executor.submit(classify_emotion_task, video_file_path, destination_key)
+        thread_executor.submit(classify_emotion_task,
+                               video_file_path, destination_key)
     except Exception as e:
-        logging.error("Failed to classify emtion due to the following error: " + e)
+        logging.error(
+            "Failed to classify emtion due to the following error: " + e)
         return {"Success": False}
 
     return {"Success": True}
+
 
 def classify_emotion_task(video_file_path, destination_key):
     try:
@@ -81,4 +96,3 @@ def classify_emotion_task(video_file_path, destination_key):
     except Exception as e:
         logging.error(e)
     return
-
