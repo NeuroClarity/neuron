@@ -1,5 +1,9 @@
-from app.analytics.eye_tracking.heatmap import Heatmapper
-from app.analytics.eye_tracking.video import VideoHeatmapper
+
+#from app.analytics.eye_tracking.heatmap import Heatmapper
+#from app.analytics.eye_tracking.video import VideoHeatmapper
+
+from heatmap import Heatmapper
+from video import VideoHeatmapper
 
 from PIL import Image
 
@@ -15,7 +19,7 @@ class Heatmap():
 
     def generate_heatmap(self, video_path, eye_gaze_array):
 
-        img_heatmapper = Heatmapper(point_diameter=400,  # the size of each point to be drawn
+        img_heatmapper = Heatmapper(point_diameter=90,  # the size of each point to be drawn
                                     point_strength=0.6,  # the strength, between 0 and 1, of each point to be drawn
                                     opacity=0.40,
                                     colours='default' )
@@ -34,13 +38,15 @@ class Heatmap():
 
 
 # TEST
-def main():
+if __name__ == '__main__':
     from numpy import genfromtxt
-    my_data = genfromtxt('sample_eye_data.csv', delimiter=' ')
-    print(my_data.shape)
-
-    my_data[:, 2] = my_data[:, 2] - 38734
+    my_data = genfromtxt('./interpolated_data.csv', delimiter=' ')
+    my_data[:, 0] = (my_data[:, 0] / max(my_data[:, 0])) * 640
+    my_data[:, 1] = (my_data[:, 1] / max(my_data[:, 1])) * 360
+    my_data[:, 2] = my_data[:, 2]
+    print(my_data)
 
     module = Heatmap()
 
-    module.video_heatmap("1984.mp4", my_data)
+    module.generate_heatmap("demo.mp4", my_data)
+

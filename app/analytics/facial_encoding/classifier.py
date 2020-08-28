@@ -11,16 +11,22 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os
+import json
 from torch.autograd import Variable
-
-from app.analytics.facial_encoding.transforms import transforms
-from app.analytics.facial_encoding.models import *
 
 from skimage import io
 from skimage.transform import resize
 
+TESTING = True
 
-MODEL_PATH = "./app/analytics/facial_encoding/weights/PrivateTest_model.t7"
+if not TESTING:
+    from app.analytics.facial_encoding.transforms import transforms
+    from app.analytics.facial_encoding.models import *
+    MODEL_PATH = "./app/analytics/facial_encoding/weights/PrivateTest_model.t7"
+else:
+    from transforms import transforms
+    from models import *
+    MODEL_PATH = "./weights/PrivateTest_model.t7"
 
 class EmotionModel():
     """ Emotion model takes in a picture, recognizes a face within the picture, and predicts what type of
@@ -153,9 +159,13 @@ class EmotionModel():
 
 
 ### TESTS
-def main():
+if __name__ == '__main__':
     model = EmotionModel()
-    score, predicted = model.video_predictor("video67.mp4")
+    score, predicted = model.classify_video("demo_video.mp4")
     print("types:", type(score), type(predicted))
     print(score.shape, len(predicted))
     assert(score.shape[0] == len(predicted))
+    with open("emotion_data.json", "w+") as f:
+        json.dump({"embedding": [i.tolist() for i in score]}, f)
+
+    print("Finished writing results to emotion_data.json")
