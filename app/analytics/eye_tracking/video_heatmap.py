@@ -1,6 +1,12 @@
 
-from app.analytics.eye_tracking.heatmap import Heatmapper
-from app.analytics.eye_tracking.video import VideoHeatmapper
+testing = False
+
+if not testing:
+    from app.analytics.eye_tracking.heatmap import Heatmapper
+    from app.analytics.eye_tracking.video import VideoHeatmapper
+else:
+    from heatmap import Heatmapper
+    from video import VideoHeatmapper
 
 from PIL import Image
 

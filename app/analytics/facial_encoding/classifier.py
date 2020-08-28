@@ -17,7 +17,7 @@ from torch.autograd import Variable
 from skimage import io
 from skimage.transform import resize
 
-TESTING = False
+TESTING = False 
 
 if not TESTING:
     from app.analytics.facial_encoding.transforms import transforms
