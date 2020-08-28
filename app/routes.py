@@ -16,8 +16,8 @@ emotion_model = EmotionModel()
 
 # define infra
 s3 = S3("us-west-1")
-logging.basicConfig(filename='app.log', filemode='w',
-                    format='%(name)s - %(levelname)s - %(message)s')
+# logging.basicConfig(filename='app.log', filemode='w',
+                    # format='%(name)s - %(levelname)s - %(message)s')
 
 # Job Pool
 NUM_THREADS = 2
