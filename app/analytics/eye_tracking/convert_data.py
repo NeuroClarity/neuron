@@ -1,6 +1,7 @@
 import json
 import csv
 
+# read and load data
 with open("sample_eye_data_2.txt") as f:
     data = json.load(f)
 

@@ -1,5 +1,4 @@
 
-
 testing = False
 
 if not testing:
@@ -14,8 +13,6 @@ from PIL import Image
 import os
 
 import numpy as np
-
-
 
 class Heatmap():
     def __init__(self):

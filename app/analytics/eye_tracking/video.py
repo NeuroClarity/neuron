@@ -8,7 +8,6 @@ from PIL import Image
 
 from app.analytics.eye_tracking.heatmap import Heatmapper
 
-
 class VideoHeatmapper:
     def __init__(self, img_heatmapper):
         self.img_heatmapper = img_heatmapper
