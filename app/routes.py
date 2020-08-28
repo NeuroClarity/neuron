@@ -39,11 +39,29 @@ def generate_heatmap():
 
         destination_key = json_data["destinationKey"]
         thread_executor.submit(generate_heatmap_task, video_file_path, eye_gaze_array, destination_key)
+        thread_executor.submit(generate_engagement, eye_gaze_array, destination_key)
     except Exception as e:
         logging.error("Heatmap failed to generate due to the following error: " + e)
         return {"Success": False}
 
     return {"Success": True}
+
+
+def generate_engagement(eye_gaze_data, destination_key):
+    try:
+        engagement = np.array([1, eye_gaze_data.shape[1]])
+        for i in range(eye_gaze_data.shape[1]):
+            if not eye_gaze_data[i].all():
+                engagement[i] = 1
+        engagement_response = {"engagement": [i.tolist() for i in engagement]}
+
+        s3.upload_engagement(destination_key, json.dumps(emotion_response))
+    except Exception as e:
+        logging.error("engagement generator failed due to the following error: " + e)
+        return {"Success": False}
+
+    return {"Success": True}
+
 
 def generate_heatmap_task(video_file_path, eye_gaze_data, destination_key):
     try:
@@ -64,7 +82,7 @@ def classify_emotion():
 
         video_file_path = "./download.mp4"
         s3.download_original_video(video_key, video_file_path)
-        
+
         destination_key = json_data["destinationKey"]
         thread_executor.submit(classify_emotion_task, video_file_path, destination_key)
     except Exception as e:
