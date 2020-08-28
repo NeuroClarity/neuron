@@ -1,17 +1,12 @@
 
-#from app.analytics.eye_tracking.heatmap import Heatmapper
-#from app.analytics.eye_tracking.video import VideoHeatmapper
-
-from heatmap import Heatmapper
-from video import VideoHeatmapper
+from app.analytics.eye_tracking.heatmap import Heatmapper
+from app.analytics.eye_tracking.video import VideoHeatmapper
 
 from PIL import Image
 
 import os
 
 import numpy as np
-
-
 
 class Heatmap():
     def __init__(self):
