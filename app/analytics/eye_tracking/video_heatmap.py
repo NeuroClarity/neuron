@@ -1,5 +1,5 @@
 
-testing = True
+testing = False
 
 if not testing:
     from app.analytics.eye_tracking.heatmap import Heatmapper
@@ -13,6 +13,7 @@ from PIL import Image
 import os
 import json
 
+from moviepy.editor import VideoFileClip
 import numpy as np
 
 class Heatmap():
