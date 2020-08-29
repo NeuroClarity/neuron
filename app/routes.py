@@ -72,19 +72,33 @@ def generate_engagement(eye_gaze_key, destination_key):
         eye_gaze_path = "./download.csv"
         s3.download_eye_tracking_data(eye_gaze_key, eye_gaze_path)
         eye_gaze_array = genfromtxt(eye_gaze_path, delimiter=' ')
+        engagement = _engagement(eye_gaze_path)
 
-        engagement = np.ones([1, eye_gaze_array.shape[1]])
-        for i in range(eye_gaze_array.shape[1]):
-            if not eye_gaze_array[i].all():
-                engagement[i] = 0
-        engagement_response = {"engagement": [i.tolist() for i in engagement]}
+        s3.upload_engagement(destination_key, json.dumps(engagement))
 
-        s3.upload_engagement(destination_key, json.dumps(engagement_response))
     except Exception as e:
         logging.error("engagement generator failed due to the following error: " + str(e))
         return {"Success": False}
 
     return {"Success": True}
+
+def _engagement(eye_gaze_path):
+    eye_gaze_array = np.genfromtxt(eye_gaze_path, delimiter=' ')
+    engagement = np.ones([eye_gaze_array.shape[0], 1])
+
+    for i in range(eye_gaze_array.shape[0]):
+        if np.isnan(np.sum(eye_gaze_array[i])):
+            engagement[i] = 0
+    engagement_response_ma = _moving_average(engagement, 3)
+    engagement_response = {"engagement": [i.tolist() for i in engagement_response_ma]}
+
+    return engagement_response
+
+def _moving_average(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
 
 def generate_heatmap_task(video_file_path, eye_gaze_data, destination_key):
     try:
