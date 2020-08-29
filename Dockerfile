@@ -1,9 +1,11 @@
-FROM python:3.8.2-alpine as build-deps
+FROM python:3.8
 
 WORKDIR usr/src/neuron
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY wsgi.py app . 
+
+RUN pip3 install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+COPY wsgi.py app ./
 
 # Secret Access Keys
 ENV AWS_ACCESS_KEY_ID=AKIAW3YQHFS33IF3EIO5

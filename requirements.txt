@@ -26,7 +26,6 @@ jmespath==0.10.0
 kiwisolver==1.2.0
 lazy-object-proxy==1.4.3
 MarkupSafe==1.1.1
-matplotlib==3.3.0
 mccabe==0.6.1
 moviepy==1.0.3
 networkx==2.4
