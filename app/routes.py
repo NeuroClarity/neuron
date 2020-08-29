@@ -10,33 +10,48 @@ from app.analytics.eye_tracking.video_heatmap import Heatmap
 from app.infra.storage.storage import S3
 from app import app
 
+import numpy as np
+
 # instantiate models
 heatmap_model = Heatmap()
 emotion_model = EmotionModel()
 
 # define infra
 s3 = S3("us-west-1")
-# logging.basicConfig(filename='app.log', filemode='w',
-                    # format='%(name)s - %(levelname)s - %(message)s')
+#logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 # Job Pool
 NUM_THREADS = 2
 thread_executor = ThreadPoolExecutor(NUM_THREADS)
 
-
-@app.route('/api/ping', methods=['GET'])
-def ping():
-    return {"Success": True}
-
-
-@app.route('/api/video/heatmap', methods=['POST'])
-def generate_heatmap():
+@app.route('/api/video/analytics_job', methods=['POST'])
+def analytics_job():
     try:
         json_data = request.get_json()
-        logging.info("Received incoming request: " + json_data)
-        video_key = json_data['videoKey']
-        eye_gaze_key = json_data['eyeGazeKey']
 
+        logging.info("Received incoming request: " + str(json_data))
+        logging.info("Received incoming request: " + str(json_data))
+
+        content_video_key = json_data['contentVideoKey']
+        eye_gaze_key = json_data['eyeGazeKey']
+        face_video_key = json_data['faceVideoKey']
+
+        heatmap_destination_key = json_data["heatmapDestinationKey"]
+        emotion_destination_key = json_data["emotionDestinationKey"]
+        engagement_destination_key = json_data["engagementDestinationKey"]
+
+        generate_heatmap(content_video_key, eye_gaze_key, heatmap_destination_key)
+        classify_emotion(face_video_key, engagement_destination_key)
+        generate_engagement(eye_gaze_key, engagement_destination_key)
+
+        return {"success": True}
+
+    except Exception as e:
+        logging.error("analytics job failed, see specific job error")
+        return {"success": False}
+
+def generate_heatmap(video_key, eye_gaze_key, destination_key):
+    try:
         video_file_path = "./download2.mp4"
         eye_gaze_path = "./download.csv"
         s3.download_original_video(video_key, video_file_path)
@@ -44,38 +59,36 @@ def generate_heatmap():
 
         eye_gaze_array = genfromtxt(eye_gaze_path, delimiter=' ')
 
-        destination_key = json_data["destinationKey"]
-
         thread_executor.submit(generate_heatmap_task, video_file_path, eye_gaze_array, destination_key)
         thread_executor.submit(generate_engagement, eye_gaze_array, destination_key)
-   except Exception as e:
-        logging.error(
-            "Heatmap failed to generate due to the following error: " + e)
+    except Exception as e:
+        logging.error("Heatmap failed to generate due to the following error: " + str(e))
         return {"Success": False}
 
     return {"Success": True}
 
-
-def generate_engagement(eye_gaze_data, destination_key):
+def generate_engagement(eye_gaze_key, destination_key):
     try:
-        engagement = np.array([1, eye_gaze_data.shape[1]])
-        for i in range(eye_gaze_data.shape[1]):
-            if not eye_gaze_data[i].all():
-                engagement[i] = 1
+        eye_gaze_path = "./download.csv"
+        s3.download_eye_tracking_data(eye_gaze_key, eye_gaze_path)
+        eye_gaze_array = genfromtxt(eye_gaze_path, delimiter=' ')
+
+        engagement = np.ones([1, eye_gaze_array.shape[1]])
+        for i in range(eye_gaze_array.shape[1]):
+            if not eye_gaze_array[i].all():
+                engagement[i] = 0
         engagement_response = {"engagement": [i.tolist() for i in engagement]}
 
-        s3.upload_engagement(destination_key, json.dumps(emotion_response))
+        s3.upload_engagement(destination_key, json.dumps(engagement_response))
     except Exception as e:
-        logging.error("engagement generator failed due to the following error: " + e)
+        logging.error("engagement generator failed due to the following error: " + str(e))
         return {"Success": False}
 
     return {"Success": True}
-
 
 def generate_heatmap_task(video_file_path, eye_gaze_data, destination_key):
     try:
-        video_save_path = heatmap_model.generate_heatmap(
-            video_file_path, eye_gaze_array)
+        video_save_path = heatmap_model.generate_heatmap(video_file_path, eye_gaze_data)
         with open(video_save_path, 'rb') as f:
             s3.upload_heatmap(destination_key, f)
     except Exception as e:
@@ -83,27 +96,18 @@ def generate_heatmap_task(video_file_path, eye_gaze_data, destination_key):
 
     return
 
-
-@app.route('/api/video/emotion', methods=['POST'])
-def classify_emotion():
+def classify_emotion(video_key, destination_key):
     try:
-        json_data = request.get_json()
-        logging.info("Received incoming request: " + json_data)
-        video_key = json_data['videoKey']
 
         video_file_path = "./download.mp4"
         s3.download_original_video(video_key, video_file_path)
 
-        destination_key = json_data["destinationKey"]
-        thread_executor.submit(classify_emotion_task,
-                               video_file_path, destination_key)
+        thread_executor.submit(classify_emotion_task, video_file_path, destination_key)
     except Exception as e:
-        logging.error(
-            "Failed to classify emtion due to the following error: " + e)
+        logging.error("Failed to classify emotion due to the following error: " + str(e))
         return {"Success": False}
 
     return {"Success": True}
-
 
 def classify_emotion_task(video_file_path, destination_key):
     try:
@@ -113,3 +117,4 @@ def classify_emotion_task(video_file_path, destination_key):
     except Exception as e:
         logging.error(e)
     return
+
