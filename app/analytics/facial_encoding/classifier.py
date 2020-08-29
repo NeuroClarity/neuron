@@ -17,7 +17,7 @@ from torch.autograd import Variable
 from skimage import io
 from skimage.transform import resize
 
-TESTING = False 
+TESTING = True
 
 if not TESTING:
     from app.analytics.facial_encoding.transforms import transforms
@@ -136,23 +136,21 @@ class EmotionModel():
         else:
             vid = cv2.VideoCapture(video_file)
 
-        length = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-
         i=0
         score = []
         predicted = []
-        for _ in range(length):
+        while (vid.isOpened()):
             # Capture the video frame
             ret, frame = vid.read()
             if ret == False:
                 break
 
             if not i % 20:
-
                 t_score, t_predicted = self.forward(frame)
                 score.append(np.array(t_score))
                 predicted.append(t_predicted)
             i+=1
+
         score = np.array(score)
 
         return score, predicted
@@ -161,7 +159,7 @@ class EmotionModel():
 ### TESTS
 if __name__ == '__main__':
     model = EmotionModel()
-    score, predicted = model.classify_video("demo_video.mp4")
+    score, predicted = model.classify_video("facial-video-data.webm")
     print("types:", type(score), type(predicted))
     print(score.shape, len(predicted))
     assert(score.shape[0] == len(predicted))

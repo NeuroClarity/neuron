@@ -4,6 +4,7 @@ __pycache__/
 
 *.t7 
 *.mp4
+*.webm
 
 .DS_Store
 
