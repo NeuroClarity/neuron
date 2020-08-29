@@ -1,5 +1,7 @@
 # Neuron
 
+**python version 3.8.5**
+
 ## SETUP
 1. Make sure you have `virtualenv` installed
 2. Run the env creation script `./create_env.sh`. If you get a permission denied error run `chmod +x ./create_env.sh`
