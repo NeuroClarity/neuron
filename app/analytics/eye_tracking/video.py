@@ -33,8 +33,8 @@ class VideoHeatmapper:
 
         return CompositeVideoClip([base_video] + list(heatmap_clips))
 
-    def heatmap_on_video_path(self, base, points, heat_fps=20):
-        return self.heatmap_on_video(base, points, heat_fps)
+    def heatmap_on_video_path(self, video, points, heat_fps=20):
+        return self.heatmap_on_video(video, points, heat_fps)
 
     def heatmap_on_image(self, base_img, points,
                          heat_fps=20,

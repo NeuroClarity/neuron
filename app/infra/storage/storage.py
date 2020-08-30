@@ -21,5 +21,8 @@ class S3():
     def download_original_video(self, key, file_path):
         self.client.download_file(Bucket=self.VIDEO_CONTENT_BUCKET, Key=key, Filename=file_path)
 
+    def download_user_video(self, key, file_path):
+        self.client.download_file(Bucket=self.RAW_DATA_BUCKET, Key=key, Filename=file_path)
+
     def download_eye_tracking_data(self, key, file_path):
         return self.client.download_file(Bucket=self.RAW_DATA_BUCKET, Key=key, Filename=file_path)
