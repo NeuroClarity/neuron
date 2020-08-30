@@ -17,7 +17,7 @@ from torch.autograd import Variable
 from skimage import io
 from skimage.transform import resize
 
-TESTING = True
+TESTING = False 
 
 if not TESTING:
     from app.analytics.facial_encoding.transforms import transforms
@@ -110,7 +110,6 @@ class EmotionModel():
         score = F.softmax(outputs_avg).data
         _, predicted = torch.max(outputs_avg.data, 0)
         predicted = self.class_names[predicted]
-        print("strongest emotion", predicted)
 
         # Save in case next frame does not get a face
         self.past_score = score
