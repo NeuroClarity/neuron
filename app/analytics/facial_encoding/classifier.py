@@ -102,12 +102,13 @@ class EmotionModel():
         ncrops, c, h, w = np.shape(inputs)
 
         inputs = inputs.view(-1, c, h, w)
-        inputs = Variable(inputs, volatile=True)
+        with torch.no_grad():
+            inputs = Variable(inputs)
         outputs = self.net(inputs)
 
         outputs_avg = outputs.view(ncrops, -1).mean(0)  # avg over crops
 
-        score = F.softmax(outputs_avg).data
+        score = F.softmax(outputs_avg, dim=0).data
         _, predicted = torch.max(outputs_avg.data, 0)
         predicted = self.class_names[predicted]
 

@@ -16,7 +16,7 @@ class S3():
         return self.client.put_object(Bucket=self.ANALYTICS_BUCKET, Key=key, Body=data)
 
     def upload_engagement(self, key, data):
-        return self.client.put_object(Bucket.self.ANALYTICS_BUCKET, Key=key, Body=data)
+        return self.client.put_object(Bucket=self.ANALYTICS_BUCKET, Key=key, Body=data)
 
     def download_original_video(self, key, file_path):
         self.client.download_file(Bucket=self.VIDEO_CONTENT_BUCKET, Key=key, Filename=file_path)

@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 class EngagementModel():
     def __init__(self):
@@ -21,4 +22,10 @@ class EngagementModel():
         ret[n:] = ret[n:] - ret[:-n]
         return ret[n - 1:] / n
 
+if __name__ == "__main__":
+    with open("../eye_tracking/sample_data/eye_data.json") as f:
+        my_data = json.load(f)
+
+    model = EngagementModel()
+    print(model.classify(my_data))
 

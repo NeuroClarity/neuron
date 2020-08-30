@@ -63,6 +63,7 @@ def _heatmap_task(video_file_path, eye_gaze_data, destination_key):
         video_save_path = heatmap_model.generate_heatmap(video_file_path, eye_gaze_data)
         with open(video_save_path, 'rb') as f:
             s3.upload_heatmap(destination_key, f)
+        logging.info("Finished generating heatmap")
     except Exception as e:
         logging.error("Failed to generate heatmap:" + str(e))
     return
@@ -71,7 +72,7 @@ def _heatmap_task(video_file_path, eye_gaze_data, destination_key):
 Gets data from s3 and runs the classification algorithm in the background
 """
 def classify_emotion(video_key, destination_key):
-    video_file_path = "./videos/user-video.mp4"
+    video_file_path = "./videos/user-video.webm"
     s3.download_user_video(video_key, video_file_path)
 
     thread_executor.submit(_emotion_task, video_file_path, destination_key)
@@ -82,6 +83,7 @@ def _emotion_task(video_file_path, destination_key):
         score, _ = emotion_model.classify_video(video_file_path)
         emotion_response = {'embedding': [i.tolist() for i in score]}
         s3.upload_emotion(destination_key, json.dumps(emotion_response))
+        logging.info("Finished emotion classification")
     except Exception as e:
         logging.error("Failed to complete emotion classification task" + str(e))
     return
@@ -97,6 +99,7 @@ def _engagement_task(eye_gaze_data, destination_key):
     try:
         engagement = engagement_model.classify(eye_gaze_data)
         s3.upload_engagement(destination_key, json.dumps(engagement))
+        logging.info("Finished engagement classification")
     except Exception as e:
         logging.error("Engagement generator failed due to the following error: " + str(e))
     return
