@@ -13,7 +13,9 @@ class EngagementModel():
             if np.isnan(np.sum(eye_gaze_array[i])):
                 engagement[i] = 0
         engagement_response_ma = self._get_moving_average(engagement, 3)
-        engagement_response = {"engagement": [i.tolist() for i in engagement_response_ma]}
+        engagement_response = {"Result": [i.tolist() for i in engagement_response_ma],
+                               "ClassificationInterval":-1}
+
 
         return engagement_response
 

@@ -3,9 +3,12 @@ FROM python:3.8
 WORKDIR usr/src/neuron
 COPY requirements.txt .
 
-RUN pip3 install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
-COPY wsgi.py app ./
+RUN apt-get update \
+    && apt-get install -y libgl1-mesa-glx \ 
+    && pip3 install --upgrade pip \
+    && pip3 install --no-cache-dir -r requirements.txt
+COPY wsgi.py ./
+COPY app ./app/
 
 # Secret Access Keys
 ENV AWS_ACCESS_KEY_ID=AKIAW3YQHFS33IF3EIO5
