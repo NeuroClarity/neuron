@@ -16,6 +16,7 @@ engagement_model = EngagementModel()
 
 # define infra
 s3 = S3("us-west-1")
+logging.basicConfig(level=logging.INFO)
 #logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 # Job Pool
