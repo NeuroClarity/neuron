@@ -17,7 +17,7 @@ from torch.autograd import Variable
 from skimage import io
 from skimage.transform import resize
 
-TESTING = False 
+TESTING = True
 
 if not TESTING:
     from app.analytics.facial_encoding.transforms import transforms
@@ -136,7 +136,8 @@ class EmotionModel():
         else:
             vid = cv2.VideoCapture(video_file)
 
-        FPS = vid.get(cv2.CAP_PROP_FPS)
+        #FPS = vid.get(cv2.CAP_PROP_FRAME_COUNT)
+        FPS = 30
 
         i=0
         score = []
