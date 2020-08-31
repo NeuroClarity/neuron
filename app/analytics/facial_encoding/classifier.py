@@ -136,6 +136,8 @@ class EmotionModel():
         else:
             vid = cv2.VideoCapture(video_file)
 
+        FPS = vid.get(cv2.CAP_PROP_FPS)
+
         i=0
         score = []
         predicted = []
@@ -145,7 +147,7 @@ class EmotionModel():
             if ret == False:
                 break
 
-            if not i % 20:
+            if not i % FPS:
                 t_score, t_predicted = self.forward(frame)
                 score.append(np.array(t_score))
                 predicted.append(t_predicted)
