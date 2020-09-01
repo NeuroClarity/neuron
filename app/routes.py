@@ -23,6 +23,10 @@ logging.basicConfig(level=logging.INFO)
 NUM_THREADS = 3
 thread_executor = ThreadPoolExecutor(NUM_THREADS)
 
+@app.route('/api/ping', methods=['GET'])
+def ping():
+    return "Success."
+
 @app.route('/api/video/analytics_job', methods=['POST'])
 def analytics_job():
     success = False
