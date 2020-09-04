@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import json
+import os
 
 from app.analytics.facial_encoding.classifier import EmotionModel
 from app.analytics.eye_tracking.video_heatmap import Heatmap
@@ -22,6 +23,11 @@ logging.basicConfig(level=logging.INFO)
 # Job Pool
 NUM_THREADS = 3
 thread_executor = ThreadPoolExecutor(NUM_THREADS)
+
+# create directory to temporarily store videos before upload
+OUTPUT_DIR = "./videos"
+if not os.path.exists(OUTPUT_DIR):
+    os.mkdir(OUTPUT_DIR)
 
 @app.route('/api/ping', methods=['GET'])
 def ping():
