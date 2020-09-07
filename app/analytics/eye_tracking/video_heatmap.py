@@ -1,5 +1,5 @@
 
-testing = False 
+testing = True
 
 if not testing:
     from app.analytics.eye_tracking.heatmap import Heatmapper
@@ -21,20 +21,37 @@ class Heatmap():
         pass
 
     """
-    Accepts JSON data in the form of: 
+    Accepts JSON data in the following form. Each list of coordinates corresponds to one user: 
     {
-        screenWidth: int,
-        screenHeight: int, 
-        collectionInterval: int, 
-        coordinates: [
-        {
-            "X": int,
-            "Y": int
-        },
-        {
-            "X": int,
-            "Y": int
-        }]
+        data: [
+            {
+                screenWidth: int,
+                screenHeight: int, 
+                collectionInterval: int, 
+                coordinates: [
+                        "X": int,
+                        "Y": int
+                    },
+                    {
+                        "X": int,
+                        "Y": int
+                    }],
+            },
+            {
+                screenWidth: int,
+                screenHeight: int, 
+                collectionInterval: int, 
+                coordinates: [
+                        "X": int,
+                        "Y": int
+                    },
+                    {
+                        "X": int,
+                        "Y": int
+                    }],
+            }
+        ]
+
     }
     """
     def generate_heatmap(self, video_path, eye_gaze_json):
@@ -42,9 +59,9 @@ class Heatmap():
         width, height = base_video.size
         eye_gaze_array = self.preprocess_data(eye_gaze_json, width, height)
 
-        img_heatmapper = Heatmapper(point_diameter=90,  # the size of each point to be drawn
-                                    point_strength=0.6,  # the strength, between 0 and 1, of each point to be drawn
-                                    opacity=0.40,
+        img_heatmapper = Heatmapper(point_diameter=60,  # the size of each point to be drawn
+                                    point_strength=0.1,  # the strength, between 0 and 1, of each point to be drawn
+                                    opacity=0.75,
                                     colours='default' )
         video_heatmapper = VideoHeatmapper(img_heatmapper)
         heatmap_video = video_heatmapper.heatmap_on_video_path(
@@ -58,38 +75,38 @@ class Heatmap():
         return video_save_path
 
     def preprocess_data(self, json_data, videoWidth, videoHeight):
-        data = json_data["coordinates"]
+        data_list = json_data["data"]
         results = []
-        count = 0
 
         # interpolate data (one data point for each millisecond)
-        gap = json_data["collectionInterval"]
-        for index in range(len(data)):
-            x = data[index]["X"]
-            y = data[index]["Y"]
-            if index != len(data) - 1:
-                xn = data[index + 1]["X"]
-                yn = data[index + 1]["Y"]
-                func_x = lambda coord: ((xn - x) / gap) * coord + x
-                func_y = lambda coord: ((yn - y) / gap) * coord + y
-                for i in range(int(gap)):
-                    results.append([func_x(i), func_y(i), i + count])
-            else:
-                results.append([x, y, count])
-            count += int(gap)
+        for data in data_list:
+            count = 0
+            screenWidth = data["screenWidth"]
+            screenHeight = data["screenHeight"]
+            gap = data["collectionInterval"]
+            coordinates = data["coordinates"]
+            for index in range(len(coordinates)):
+                x = coordinates[index]["X"]
+                y = coordinates[index]["Y"]
+                if index != len(coordinates) - 1:
+                    xn = coordinates[index + 1]["X"]
+                    yn = coordinates[index + 1]["Y"]
+                    func_x = lambda coord: ((xn - x) / gap) * coord + x
+                    func_y = lambda coord: ((yn - y) / gap) * coord + y
+                    for i in range(int(gap)):
+                        # Normalize the data according to the size of the video
+                        results.append([(func_x(i) / screenWidth) * videoWidth, (func_y(i) / screenHeight) * videoHeight, i + count])
+                else:
+                    results.append([(x / screenWidth) * videoWidth, (y / screenHeight) * videoHeight, count])
+                count += int(gap)
 
-        results = np.array(results)
-        # Normalize the data according to the size of the video
-        # TODO: replace normalization numbers with the size of the video
-        results[:, 0] = (results[:, 0] / json_data["screenWidth"]) * videoWidth
-        results[:, 1] = (results[:, 1] / json_data["screenHeight"]) * videoHeight
-        return results
+        return np.array(results)
 
 # TEST
 if __name__ == '__main__':
-    with open("sample_data/eye_data.json") as f:
+    with open("sample_data/eye-tracking-data-multiple.json") as f:
         my_data = json.load(f)
 
     module = Heatmap()
-    module.generate_heatmap("demo.mp4", my_data)
+    module.generate_heatmap("./sample_data/demo.mp4", my_data)
 
