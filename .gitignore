@@ -6,7 +6,10 @@ __pycache__/
 *.mp4
 *.mp3
 *.webm
+videos/
 
 .DS_Store
 
 app.log
+
+cdk.out

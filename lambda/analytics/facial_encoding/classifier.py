@@ -17,16 +17,9 @@ from torch.autograd import Variable
 from skimage import io
 from skimage.transform import resize
 
-TESTING = False
-
-if not TESTING:
-    from app.analytics.facial_encoding.transforms import transforms
-    from app.analytics.facial_encoding.models import *
-    MODEL_PATH = "./app/analytics/facial_encoding/weights/PrivateTest_model.t7"
-else:
-    from transforms import transforms
-    from models import *
-    MODEL_PATH = "./weights/PrivateTest_model.t7"
+from .transforms import transforms
+from .models import *
+MODEL_PATH = "./analytics/facial_encoding/weights/PrivateTest_model.t7"
 
 class EmotionModel():
     """ Emotion model takes in a picture, recognizes a face within the picture, and predicts what type of
