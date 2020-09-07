@@ -86,15 +86,17 @@ def classify_emotion(video_key, destination_key):
     video_file_path = "./videos/user-video.webm"
     s3.download_user_video(video_key, video_file_path)
 
-    thread_executor.submit(_emotion_task, video_file_path, destination_key)
+    thread_executor.submit(_emotion_task, video_file_path, destination_key, video_key)
     return
 
-def _emotion_task(video_file_path, destination_key):
+def _emotion_task(video_file_path, destination_key, video_key):
     try:
         score, _ = emotion_model.classify_video(video_file_path)
         emotion_response = {'embedding': [i.tolist() for i in score]}
         s3.upload_emotion(destination_key, json.dumps(emotion_response))
         logging.info("Finished emotion classification")
+        # TODO: Once engagement model is updated, we will need to wait for both models to finish before deleteing
+        s3.delete_user_video(video_key)
     except Exception as e:
         logging.error("Failed to complete emotion classification task" + str(e))
     return

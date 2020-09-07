@@ -6,6 +6,11 @@ class EngagementModel():
         return
 
     def classify(self, data):
+        data = data["data"]
+        if not data:
+            return
+
+        data = data[0]
         eye_gaze_array = np.array([[d["X"], d["Y"]] for d in data["coordinates"]])
         engagement = np.ones([eye_gaze_array.shape[0], 1])
 

@@ -1,5 +1,5 @@
 
-testing = True
+testing = False
 
 if not testing:
     from app.analytics.eye_tracking.heatmap import Heatmapper
