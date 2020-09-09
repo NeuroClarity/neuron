@@ -32,9 +32,7 @@ class Inference:
     def __init__(self):
         self.device = torch.device('cpu')
         self.load_path = "models/model_params.pt"
-        self.model = self.load_model()
 
-    def load_model(self):
         model_conv = torchvision.models.squeezenet1_1(pretrained=True)
         for param in model_conv.parameters():
             param.requires_grad = False
@@ -47,7 +45,7 @@ class Inference:
         model_conv = model_conv.to(self.device)
 
         model_conv.load_state_dict(torch.load(self.load_path))
-        return model_conv
+        self.model = model_conv
 
     def forward(self, model, image):
         model.eval()
@@ -64,8 +62,7 @@ class EngagementModel():
     """
     def __init__(self):
 
-        self.net = VGG('VGG19')
-        checkpoint = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
+        self.net = Inference() 
         self.net.load_state_dict(checkpoint['net'])
         self.net.eval()
 
@@ -177,7 +174,7 @@ class EngagementModel():
                 break
 
             if not i % FPS:
-                t_score, t_predicted = self.forward(frame)
+                t_score, t_predicted = self.model.forward(frame)
                 score.append(np.array(t_score))
                 predicted.append(t_predicted)
             i+=1
