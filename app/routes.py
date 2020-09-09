@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 #logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 # Job Pool
-NUM_THREADS = 3
+NUM_THREADS = 1
 thread_executor = ThreadPoolExecutor(NUM_THREADS)
 
 # create directory to temporarily store videos before upload

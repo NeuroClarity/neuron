@@ -15,4 +15,4 @@ ENV AWS_ACCESS_KEY_ID=AKIAW3YQHFS33IF3EIO5
 ENV AWS_SECRET_ACCESS_KEY=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
 
 EXPOSE 5000
-CMD ["gunicorn",  "-w", "5", "-b", "0.0.0.0:5000", "wsgi:app"]
+CMD ["gunicorn",  "-w", "1", "-b", "0.0.0.0:5000", "wsgi:app"]
