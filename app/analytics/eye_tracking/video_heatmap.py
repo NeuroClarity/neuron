@@ -69,7 +69,7 @@ class Heatmap():
             points=eye_gaze_array
         )
 
-        video_save_path = './videos/heatmap-result.mp4'
+        video_save_path = './content/heatmap-result.mp4'
         heatmap_video.write_videofile(video_save_path, bitrate="5000k", fps=24, verbose=False, logger=None) # TODO: This should actually be saving to S3
 
         return video_save_path
