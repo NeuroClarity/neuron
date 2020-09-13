@@ -12,136 +12,71 @@ import torch.nn.functional as F
 import os
 import json
 from torch.autograd import Variable
-
+from torchvision.transforms import Compose, CenterCrop, ToTensor, Normalize
+from torchvision.models import squeezenet1_1
 from skimage import io
 from skimage.transform import resize
 
-TESTING = False
+TESTING = True
 
 if not TESTING:
-    from app.analytics.facial_encoding.transforms import transforms
-    from app.analytics.facial_encoding.models import *
     MODEL_PATH = "./app/analytics/facial_encoding/weights/PrivateTest_model.t7"
 else:
-    from transforms import transforms
-    from models import *
+    import matplotlib.pyplot as plt
     MODEL_PATH = "./weights/PrivateTest_model.t7"
 
 
-class Inference:
+class Model:
     def __init__(self):
+
         self.device = torch.device('cpu')
         self.load_path = "models/model_params.pt"
 
-        model_conv = torchvision.models.squeezenet1_1(pretrained=True)
-        for param in model_conv.parameters():
-            param.requires_grad = False
+        model_conv = squeezenet1_1(pretrained=False)
 
         model_conv.classifier = nn.Sequential(
             nn.Dropout(p=0.5),
-            nn.Conv2d(512, 1, kernel_size=1),
-            nn.Sigmoid()
+            nn.Conv2d(512, 2, kernel_size=1),
+            nn.ReLU(inplace=True),
+            nn.AvgPool2d(13),
         )
+        for param in model_conv.parameters():
+                    param.requires_grad = False
+
         model_conv = model_conv.to(self.device)
 
         model_conv.load_state_dict(torch.load(self.load_path))
+        model_conv.eval()
         self.model = model_conv
+        self.data_transform = Compose([CenterCrop(256),
+                                          ToTensor(),
+                                          Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-    def forward(self, model, image):
-        model.eval()
-        inputs = inputs.to(self.device)
-        outputs = model(image.float())
 
+
+    def inference(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+        image = self.data_transform(image)
+        image = image.unsqueeze(0)
+        image = image.to(self.device)
+        outputs = self.model.forward(image.float())
+        outputs = outputs / outputs.sum(1)
         return outputs
 
 
 class EngagementModel():
-    """ Engagement model takes in a picture, recognizes a face within the picture, and predicts what type of
-        emotion that face conveys between 'Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral'.
-
+    """ Engagement model takes in a picture, recognizes a face within the picture, and predicts the
+    level of engagement within that picture.
     """
     def __init__(self):
 
-        self.net = Inference() 
-        self.net.load_state_dict(checkpoint['net'])
-        self.net.eval()
+        self.model = Model()
 
         self.past_score = []
         self.past_predicted = ''
 
-        self.class_names = ['Engagement']
-
-
-    def forward(self, frame):
-        """ forward runs a forward pass though the model
-            Input:
-                frame - a picture of variable size with a face on it.
-            Output:
-                score - NumPy array where each value represents the probaility of each of hte 7 possible emotions
-                predicted - A string representing the emotion with the highest probaility.
-            """
-
-        # Extracting the face
-        image = frame
-        #image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-        faces = faceCascade.detectMultiScale(
-            image,
-            scaleFactor=1.3,
-            minNeighbors=3,
-            minSize=(30, 30)
-        )
-
-        for (x, y, w, h) in faces:
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            image = image[y:y + h, x:x + w]
-
-
-        cut_size = 48
-
-        transform_test = transforms.Compose([
-            transforms.TenCrop(cut_size),
-            transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-        ])
-
-
-        def rgb2gray(rgb):
-            return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
-
-        if len(image)<5 or len(faces)==0:
-            return self.past_score, self.past_predicted
-
-        gray = rgb2gray(image)
-
-        gray = resize(gray, (48,48), mode='symmetric').astype(np.uint8)
-
-        img = gray[:, :, np.newaxis]
-
-        img = np.concatenate((img, img, img), axis=2)
-        img = Image.fromarray(img)
-        inputs = transform_test(img)
-
-
-
-        ncrops, c, h, w = np.shape(inputs)
-
-        inputs = inputs.view(-1, c, h, w)
-        with torch.no_grad():
-            inputs = Variable(inputs)
-        outputs = self.net(inputs)
-
-        outputs_avg = outputs.view(ncrops, -1).mean(0)  # avg over crops
-
-        score = F.softmax(outputs_avg, dim=0).data
-        _, predicted = torch.max(outputs_avg.data, 0)
-        predicted = self.class_names[predicted]
-
-        # Save in case next frame does not get a face
-        self.past_score = score
-        self.past_predicted = predicted
-
-        return score, predicted
+        self.class_names = ['Unenaged', 'Engaged']
 
 
     def classify_video(self, video_file):
@@ -166,31 +101,30 @@ class EngagementModel():
 
         i=0
         score = []
-        predicted = []
         while (vid.isOpened()):
             # Capture the video frame
             ret, frame = vid.read()
             if ret == False:
                 break
 
-            if not i % FPS:
-                t_score, t_predicted = self.model.forward(frame)
+            if not i % 1:
+                t_score = self.model.inference(frame)
                 score.append(np.array(t_score))
-                predicted.append(t_predicted)
             i+=1
 
         score = np.array(score)
 
-        return score, predicted
+        return score
 
 
 ### TESTS
 if __name__ == '__main__':
-    model = EmotionModel()
-    score, predicted = model.classify_video("facial-video-data.webm")
-    print("types:", type(score), type(predicted))
-    print(score.shape, len(predicted))
-    assert(score.shape[0] == len(predicted))
+    model = EngagementModel()
+    score = model.classify_video("test_video_data/facial-video-data2.webm")
+    print("types:", type(score))
+    print(score.shape)
+    plt.plot(score[:, :, 1])
+    plt.show()
     with open("emotion_data.json", "w+") as f:
         json.dump({"embedding": [i.tolist() for i in score]}, f)
 
