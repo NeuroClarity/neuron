@@ -1,7 +1,6 @@
 """
 visualize results for test image
 """
-
 import cv2
 import numpy as np
 from PIL import Image
@@ -15,11 +14,7 @@ from skimage.transform import resize
 from .transforms import transforms
 from .models import VGG
 
-TESTING = False
-if not TESTING:
-    MODEL_PATH = "./app/infra/analytics/facial_encoding/weights/PrivateTest_model.t7"
-else:
-    MODEL_PATH = "./weights/PrivateTest_model.t7"
+MODEL_PATH = "./weights/PrivateTest_model.t7"
 
 
 class EmotionModel():

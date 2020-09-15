@@ -5,9 +5,9 @@ import sys
 import os
 
 LENGTH = 8 # length of resulting video in seconds
-FPS = 1 # frames per second of resulting video
+FPS = 30 # frames per second of resulting video
 
-def get_video_from_image(file_path):
+def get_video_from_image(file_path, output_dir):
     img = cv2.imread(file_path)
     height, width, layers = img.shape
     size = (width,height)
@@ -17,8 +17,8 @@ def get_video_from_image(file_path):
     for _ in range(NUM_FRAMES):
         img_array.append(img)
 
-    output_file = "./content/user_content.mp4"
-    output_file_2 = "./content/user_content2.mp4"
+    output_file = "{0}/user_content.mp4".format(output_dir)
+    output_file_2 = "{0}/user_content2.mp4".format(output_dir)
     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*"mp4v"), FPS, size)
 
     for i in range(len(img_array)):

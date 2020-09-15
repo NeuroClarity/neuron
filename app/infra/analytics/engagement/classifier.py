@@ -1,38 +1,133 @@
+"""
+visualize results for test image
+"""
+import sys
+import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import os
 import json
+from torch.autograd import Variable
+from torchvision.transforms import Compose, CenterCrop, ToTensor, Normalize
+from torchvision.models import squeezenet1_1
+from skimage import io
+from skimage.transform import resize
+
+import matplotlib.pyplot as plt
+
+TESTING = False
+if not TESTING:
+    MODEL_PATH = "./weights/model_params.pt"
+else:
+    MODEL_PATH = "../../../../weights/model_params.pt"
+
+class Model():
+    def __init__(self):
+
+        self.device = torch.device('cpu')
+        self.load_path = MODEL_PATH
+
+        model_conv = squeezenet1_1(pretrained=False)
+
+        model_conv.classifier = nn.Sequential(
+            nn.Dropout(p=0.5),
+            nn.Conv2d(512, 2, kernel_size=1),
+            nn.ReLU(inplace=True),
+            nn.AvgPool2d(13),
+        )
+        for param in model_conv.parameters():
+                    param.requires_grad = False
+
+        model_conv = model_conv.to(self.device)
+
+        model_conv.load_state_dict(torch.load(self.load_path))
+        model_conv.eval()
+        self.model = model_conv
+        self.data_transform = Compose([CenterCrop(256),
+                                          ToTensor(),
+                                          Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+
+
+
+    def inference(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+        image = self.data_transform(image)
+        image = image.unsqueeze(0)
+        image = image.to(self.device)
+        outputs = self.model.forward(image.float())
+        outputs = outputs / outputs.sum(1)
+        return outputs
+
 
 class EngagementModel():
+    """ Engagement model takes in a picture, recognizes a face within the picture, and predicts the
+    level of engagement within that picture.
+    """
     def __init__(self):
-        return
 
-    def classify(self, data):
-        data = data["data"]
-        if not data:
-            return
+        self.model = Model()
 
-        data = data[0]
-        eye_gaze_array = np.array([[d["X"], d["Y"]] for d in data["coordinates"]])
-        engagement = np.ones([eye_gaze_array.shape[0], 1])
+        self.past_score = []
+        self.past_predicted = ''
 
-        for i in range(eye_gaze_array.shape[0]):
-            if np.isnan(np.sum(eye_gaze_array[i])):
-                engagement[i] = 0
-        engagement_response_ma = self._get_moving_average(engagement, 3)
-        engagement_response = {"Result": [i.tolist() for i in engagement_response_ma],
+        self.class_names = ['UnEngaged', 'Engaged']
+
+
+    def classify_video(self, video_file):
+        """ Breaks up a video into its respective frames and runs each frame through the model.
+
+            Input:
+                video_file - the path to a video file
+
+            Output:
+                score - time series NumPy array where columns (dim 1) represents the 7 possible emotions
+                    and the rows (dim 0) represent the proability of each emotion over time.
+                predicted - A list of strings of same length as score.dim1 and each string representents the
+                    emotion with the highest probability at that point in time.
+        """
+        if isinstance(video_file, str):
+            vid = cv2.VideoCapture(video_file)
+        else:
+            vid = cv2.VideoCapture(video_file)
+
+        FPS = 30
+
+        i=0
+        score = []
+        while (vid.isOpened()):
+            # Capture the video frame
+            ret, frame = vid.read()
+            if ret == False:
+                break
+
+            if not i % 1:
+                t_score = self.model.inference(frame)
+                score.append(np.array(t_score[0]))
+            i+=1
+
+        score = np.array(score)
+
+        # prepare for jsonification
+        engagement_response = {"Result": [str(cls[1]) for cls in score],
                                "ClassificationInterval":-1}
-
 
         return engagement_response
 
-    def _get_moving_average(self, a, n=3) :
-        ret = np.cumsum(a, dtype=float)
-        ret[n:] = ret[n:] - ret[:-n]
-        return ret[n - 1:] / n
 
-if __name__ == "__main__":
-    with open("../eye_tracking/sample_data/eye_data.json") as f:
-        my_data = json.load(f)
-
+### TESTS
+if __name__ == '__main__':
     model = EngagementModel()
-    print(model.classify(my_data))
+    score = model.classify_video("test_video_data/facial-video-data2.webm")
+    print("types:", type(score))
+    print(score.shape)
+    plt.plot(score[:, :, 1])
+    plt.show()
+    with open("emotion_data.json", "w+") as f:
+        json.dump({"embedding": [i.tolist() for i in score]}, f)
 
+    print("Finished writing results to emotion_data.json")

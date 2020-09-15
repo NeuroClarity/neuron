@@ -9,6 +9,7 @@ RUN apt-get update \
     && pip3 install --no-cache-dir -r requirements.txt
 COPY wsgi.py ./
 COPY app ./app/
+COPY weights ./weights/
 
 # Secret Access Keys
 ENV AWS_ACCESS_KEY_ID=AKIAW3YQHFS33IF3EIO5

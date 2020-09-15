@@ -16,7 +16,7 @@ if not os.path.exists(OUTPUT_DIR):
 
 s3 = S3("us-west-1")
 analytics_controller = AnalyticsController(s3, OUTPUT_DIR)
-data_controller = DataController(s3)
+data_controller = DataController(s3, OUTPUT_DIR)
 
 # log to std out
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,7 @@ def convert_image():
 
         filename = image_content_key.rsplit("/", 1)[-1]
         destination_path = "./{0}/{1}".format(OUTPUT_DIR, filename)
-        data_controller.convert_and_upload_image(image_content_key, destination_path, destination_key)
+        data_controller.convert_image_to_video(image_content_key, destination_path, destination_key)
 
         success = True
     except Exception as e:
@@ -63,9 +63,12 @@ def analytics_job():
         engagement_destination_key = json_data["engagementDestinationKey"]
 
         # make async calls to start analysis
-        analytics_controller.generate_heatmap(content_video_key, eye_gaze_data, heatmap_destination_key)
-        analytics_controller.classify_emotion(face_video_key, emotion_destination_key)
-        analytics_controller.classify_engagement(eye_gaze_data, engagement_destination_key)
+        analytics_controller.submit_analytics_job(content_video_key, 
+                eye_gaze_data, face_video_key, 
+                heatmap_destination_key, emotion_destination_key, engagement_destination_key)
+
+        # delete user webcam data on completion
+        s3.delete_user_video(face_video_key)
 
         success = True
     except Exception as e:
