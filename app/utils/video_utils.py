@@ -34,7 +34,7 @@ def get_video_from_image(file_path):
 
     return content
 
-## TEST
+# TEST
 if __name__=="__main__":
     file_path = sys.argv[1]
     get_video_from_image(file_path)

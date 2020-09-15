@@ -6,11 +6,7 @@ from moviepy.editor import *
 import numpy as np
 from PIL import Image
 
-testing = False
-if not testing:
-    from app.analytics.eye_tracking.heatmap import Heatmapper
-else:
-    from heatmap import Heatmapper
+from .heatmap import Heatmapper
 
 class VideoHeatmapper:
     def __init__(self, img_heatmapper):

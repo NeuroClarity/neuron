@@ -1,23 +1,22 @@
-
-testing = False
-
-if not testing:
-    from app.analytics.eye_tracking.heatmap import Heatmapper
-    from app.analytics.eye_tracking.video import VideoHeatmapper
-else:
-    from heatmap import Heatmapper
-    from video import VideoHeatmapper
-
-from PIL import Image
-
+import numpy as np
 import os
 import json
 
 from moviepy.editor import VideoFileClip
-import numpy as np
+from PIL import Image
+
+testing = True
+
+if not testing:
+    from app.infra.analytics.eye_tracking.heatmap import Heatmapper
+    from app.infra.analytics.eye_tracking.video import VideoHeatmapper
+else:
+    from .heatmap import Heatmapper
+    from .video import VideoHeatmapper
 
 class Heatmap():
-    def __init__(self):
+    def __init__(self, output_dir):
+        self.output_dir = output_dir
         pass
 
     """
@@ -69,7 +68,7 @@ class Heatmap():
             points=eye_gaze_array
         )
 
-        video_save_path = './content/heatmap-result.mp4'
+        video_save_path = '{0}/heatmap-result.mp4'.format(self.output_dir)
         heatmap_video.write_videofile(video_save_path, bitrate="5000k", fps=24, verbose=False, logger=None) # TODO: This should actually be saving to S3
 
         return video_save_path
