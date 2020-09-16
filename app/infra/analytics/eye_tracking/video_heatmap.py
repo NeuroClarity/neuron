@@ -63,7 +63,8 @@ class Heatmap():
         width, height = base_video.size
         eye_gaze_array = self.preprocess_data(eye_gaze_json, width, height)
         # moving average over eye signal
-        ma_window = 5
+        ma_window = 1000 
+        print(eye_gaze_array.shape)
         x_ma = self.moving_average(eye_gaze_array[:, 0], ma_window)
         y_ma = self.moving_average(eye_gaze_array[:, 1], ma_window)
         eye_gaze_array[:-ma_window+1, 0] = x_ma
