@@ -5,7 +5,7 @@ import json
 from moviepy.editor import VideoFileClip
 from PIL import Image
 
-testing = True
+testing = False
 
 if not testing:
     from app.infra.analytics.eye_tracking.heatmap import Heatmapper
@@ -63,12 +63,12 @@ class Heatmap():
         width, height = base_video.size
         eye_gaze_array = self.preprocess_data(eye_gaze_json, width, height)
         # moving average over eye signal
-        ma_window = 500 
+        ma_window = 100 
         x_ma = self.moving_average(eye_gaze_array[:, 0], ma_window)
         y_ma = self.moving_average(eye_gaze_array[:, 1], ma_window)
         eye_gaze_array[:-ma_window+1, 0] = x_ma
         eye_gaze_array[:-ma_window+1, 1] = y_ma
-        img_heatmapper = Heatmapper(point_diameter=60,  # the size of each point to be drawn
+        img_heatmapper = Heatmapper(point_diameter=int(width / 7),  # the size of each point to be drawn
                                     point_strength=0.1,  # the strength, between 0 and 1, of each point to be drawn
                                     opacity=0.75,
                                     colours='default' )
@@ -78,7 +78,7 @@ class Heatmap():
             points=eye_gaze_array
         )
 
-        video_save_path = '{0}/heatmap-result_ma.mp4'.format(self.output_dir)
+        video_save_path = '{0}/heatmap-result.mp4'.format(self.output_dir)
         heatmap_video.write_videofile(video_save_path, bitrate="5000k", fps=24, verbose=False, logger=None) # TODO: This should actually be saving to S3
 
         return video_save_path
@@ -115,6 +115,6 @@ class Heatmap():
 if __name__ == '__main__':
     with open("sample_data/eye-tracking-data-multiple.json") as f:
         my_data = json.load(f)
-    module = Heatmap("sample_output")
+    module = Heatmap("./sample_output")
     module.generate_heatmap("./sample_data/demo.mp4", my_data)
 

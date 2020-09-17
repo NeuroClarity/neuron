@@ -24,7 +24,7 @@ class AnalyticsController():
     def submit_analytics_job(self, content, eye_data, face_data, heatmap_key, emotion_key, engagement_key):
         self.generate_heatmap(content, eye_data, heatmap_key)
 
-        facial_file_path = "./{0}/user-video.webm".format(self.output_dir)
+        facial_file_path = "{0}/user-video.webm".format(self.output_dir)
         self.s3.download_user_facial_video(face_data, facial_file_path)
         self.classify_emotion(facial_file_path, emotion_key)
         self.classify_engagement(facial_file_path, engagement_key)

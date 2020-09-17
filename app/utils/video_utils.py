@@ -6,9 +6,16 @@ import os
 
 LENGTH = 8 # length of resulting video in seconds
 FPS = 30 # frames per second of resulting video
+TARGET_WIDTH = 640
 
 def get_video_from_image(file_path, output_dir):
     img = cv2.imread(file_path)
+    height, width, layers = img.shape
+
+    # downsample the image
+    ratio = TARGET_WIDTH / width
+    width, height = int(width * ratio), int(height * ratio) 
+    img = cv2.resize(img, dsize=(width, height), interpolation=cv2.INTER_CUBIC)
     height, width, layers = img.shape
     size = (width,height)
 
@@ -37,4 +44,4 @@ def get_video_from_image(file_path, output_dir):
 # TEST
 if __name__=="__main__":
     file_path = sys.argv[1]
-    get_video_from_image(file_path)
+    get_video_from_image(file_path, './tmp')
