@@ -58,12 +58,12 @@ class Heatmap():
         ret[n:] = ret[n:] - ret[:-n]
         return ret[n - 1:] / n
 
-    def generate_heatmap(self, video_path, eye_gaze_json):
+    def generate_heatmap(self, study_id, video_path, eye_gaze_json):
         base_video = VideoFileClip(video_path, verbose=False)
         width, height = base_video.size
         eye_gaze_array = self.preprocess_data(eye_gaze_json, width, height)
         # moving average over eye signal
-        ma_window = 100 
+        ma_window = 100
         x_ma = self.moving_average(eye_gaze_array[:, 0], ma_window)
         y_ma = self.moving_average(eye_gaze_array[:, 1], ma_window)
         eye_gaze_array[:-ma_window+1, 0] = x_ma
@@ -78,7 +78,7 @@ class Heatmap():
             points=eye_gaze_array
         )
 
-        video_save_path = '{0}/heatmap-result.mp4'.format(self.output_dir)
+        video_save_path = '{0}/heatmap-result--{1}.mp4'.format(self.output_dir, study_id)
         heatmap_video.write_videofile(video_save_path, bitrate="5000k", fps=24, verbose=False, logger=None) # TODO: This should actually be saving to S3
 
         return video_save_path
@@ -87,27 +87,34 @@ class Heatmap():
         data_list = json_data["data"]
         results = []
 
-        # interpolate data (one data point for each millisecond)
+        # interpolate data 
+        # iterate through the list of reviewers
         for data in data_list:
-            count = 0
-            screenWidth = data["screenWidth"]
-            screenHeight = data["screenHeight"]
-            gap = data["collectionInterval"]
-            coordinates = data["coordinates"]
-            for index in range(len(coordinates)):
-                x = coordinates[index]["X"]
-                y = coordinates[index]["Y"]
-                if index != len(coordinates) - 1:
+            try:
+                screenWidth = data["screenWidth"]
+                screenHeight = data["screenHeight"]
+                coordinates = data["coordinates"]
+                # iterate through each coordinate
+                for index in range(len(coordinates)):
+                    x = coordinates[index]["X"]
+                    y = coordinates[index]["Y"]
+                    time = coordinates[index]["Time"] * 1000
+
+                    if index == len(coordinates) - 1:
+                        results.append([(x / screenWidth) * videoWidth, (y / screenHeight) * videoHeight, time])
+                        break
+
                     xn = coordinates[index + 1]["X"]
                     yn = coordinates[index + 1]["Y"]
+                    timen = coordinates[index + 1]["Time"] * 1000
+                    gap = (timen - time)
                     func_x = lambda coord: ((xn - x) / gap) * coord + x
                     func_y = lambda coord: ((yn - y) / gap) * coord + y
                     for i in range(int(gap)):
                         # Normalize the data according to the size of the video
-                        results.append([(func_x(i) / screenWidth) * videoWidth, (func_y(i) / screenHeight) * videoHeight, i + count])
-                else:
-                    results.append([(x / screenWidth) * videoWidth, (y / screenHeight) * videoHeight, count])
-                count += int(gap)
+                        results.append([(func_x(i) / screenWidth) * videoWidth, (func_y(i) / screenHeight) * videoHeight, time + i])
+            except Exception as e:
+                continue
 
         return np.array(results)
 

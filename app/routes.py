@@ -35,10 +35,11 @@ def convert_image():
 
         image_content_key = json_data['imageContentKey']
         destination_key = json_data['destinationKey']
+        length = json_data['length']
 
         filename = image_content_key.rsplit("/", 1)[-1]
-        destination_path = "./{0}/{1}".format(OUTPUT_DIR, filename)
-        data_controller.convert_image_to_video(image_content_key, destination_path, destination_key)
+        destination_path = "{0}/{1}".format(OUTPUT_DIR, filename)
+        data_controller.convert_image_to_video(image_content_key, destination_path, length, destination_key)
 
         success = True
     except Exception as e:
@@ -62,13 +63,15 @@ def analytics_job():
         emotion_destination_key = json_data["emotionDestinationKey"]
         engagement_destination_key = json_data["engagementDestinationKey"]
 
+        # TODO: this is jank, the study_id should instead be passed in as input
+        study_id = content_video_key.split("/")[0]
+
         # make async calls to start analysis
-        analytics_controller.submit_analytics_job(content_video_key, 
+        analytics_controller.submit_analytics_job(
+                study_id,
+                content_video_key, 
                 eye_gaze_data, face_video_key, 
                 heatmap_destination_key, emotion_destination_key, engagement_destination_key)
-
-        # delete user webcam data on completion
-        s3.delete_user_video(face_video_key)
 
         success = True
     except Exception as e:
