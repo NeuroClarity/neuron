@@ -5,6 +5,7 @@ COPY requirements.txt .
 
 RUN apt-get update \
     && apt-get install -y libgl1-mesa-glx \ 
+    && apt-get install -y ffmpeg \
     && pip3 install --upgrade pip \
     && pip3 install --no-cache-dir -r requirements.txt
 COPY wsgi.py ./
