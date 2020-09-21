@@ -70,7 +70,7 @@ class Heatmap():
         eye_gaze_array[:-ma_window+1, 1] = y_ma
         img_heatmapper = Heatmapper(point_diameter=int(width / 7),  # the size of each point to be drawn
                                     point_strength=0.1,  # the strength, between 0 and 1, of each point to be drawn
-                                    opacity=0.75,
+                                    opacity=0.40,
                                     colours='default' )
         video_heatmapper = VideoHeatmapper(img_heatmapper)
         heatmap_video = video_heatmapper.heatmap_on_video_path(
