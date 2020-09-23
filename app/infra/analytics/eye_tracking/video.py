@@ -32,6 +32,7 @@ class VideoHeatmapper:
         heatmap_frames = self._heatmap_frames(width, height, frame_points)
         heatmap_clips = self._heatmap_clips(heatmap_frames, heat_fps)
 
+        print("Generating video from frames")
         return CompositeVideoClip([base_video] + list(heatmap_clips))
 
     def heatmap_on_video_path(self, video, points, heat_fps=20):

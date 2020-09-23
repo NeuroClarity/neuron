@@ -78,8 +78,9 @@ class Heatmap():
             points=eye_gaze_array
         )
 
+        print("writing heatmap to disk")
         video_save_path = '{0}/heatmap-result--{1}.mp4'.format(self.output_dir, study_id)
-        heatmap_video.write_videofile(video_save_path, bitrate="5000k", fps=24, verbose=False, logger=None) # TODO: This should actually be saving to S3
+        heatmap_video.write_videofile(video_save_path, bitrate="1200k", fps=24, verbose=False, logger=None, threads=4) # TODO: This should actually be saving to S3
 
         return video_save_path
 
