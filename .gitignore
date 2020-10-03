@@ -12,6 +12,6 @@ tmp/
 
 .DS_Store
 
-app.log
+neuron.log
 
 cdk.out

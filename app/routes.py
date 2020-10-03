@@ -19,10 +19,11 @@ analytics_controller = AnalyticsController(s3, OUTPUT_DIR)
 data_controller = DataController(s3, OUTPUT_DIR)
 
 # log to std out
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S', level=logging.INFO, filename='neuron.log')
 
 @app.route('/api/ping', methods=['GET'])
 def ping():
+    logging.info("Received ping")
     return "Success."
 
 
