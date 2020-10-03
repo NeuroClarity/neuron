@@ -14,7 +14,7 @@ from skimage.transform import resize
 from .transforms import transforms
 from .models import VGG
 
-MODEL_PATH = "./weights/PrivateTest_model.t7"
+MODEL_PATH ="app/infra/analytics/facial_encoding/weights/PrivateTest_model.t7"
 
 
 class EmotionModel():
@@ -149,8 +149,11 @@ class EmotionModel():
                 predicted.append(t_predicted)
             i += 1
 
-        score = np.array(score)
-
+        # multiply the array to be max = 1
+        score = np.array(score[2:])
+        max_score = np.max(score)
+        multiplier = 1 / max_score
+        score = score * multiplier
         return score, predicted
 
 
@@ -160,7 +163,7 @@ if __name__ == '__main__':
     score, predicted = model.classify_video("facial-video-data.webm")
     print("types:", type(score), type(predicted))
     print(score.shape, len(predicted))
-    assert(score.shape[0] == len(predicted))
+    #    assert(score.shape[0] == len(predicted))
     with open("emotion_data.json", "w+") as f:
         json.dump({"embedding": [i.tolist() for i in score]}, f)
 
