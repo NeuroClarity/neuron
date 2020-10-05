@@ -68,8 +68,8 @@ class Heatmap():
         y_ma = self.moving_average(eye_gaze_array[:, 1], ma_window)
         eye_gaze_array[:-ma_window+1, 0] = x_ma
         eye_gaze_array[:-ma_window+1, 1] = y_ma
-        img_heatmapper = Heatmapper(point_diameter=int(width / 7),  # the size of each point to be drawn
-                                    point_strength=0.1,  # the strength, between 0 and 1, of each point to be drawn
+        img_heatmapper = Heatmapper(point_diameter=int(max(width, height) / 6.5),  # the size of each point to be drawn
+                                    point_strength=0.15,  # the strength, between 0 and 1, of each point to be drawn
                                     opacity=0.40,
                                     colours='default' )
         video_heatmapper = VideoHeatmapper(img_heatmapper)
@@ -87,6 +87,7 @@ class Heatmap():
     def preprocess_data(self, json_data, videoWidth, videoHeight):
         data_list = json_data["data"]
         results = []
+        collection_frequency = 5 # one sample every 8ms
 
         # interpolate data 
         # iterate through the list of reviewers
@@ -100,7 +101,6 @@ class Heatmap():
                     x = coordinates[index]["X"]
                     y = coordinates[index]["Y"]
                     time = coordinates[index]["Time"] * 1000
-
                     if index == len(coordinates) - 1:
                         results.append([(x / screenWidth) * videoWidth, (y / screenHeight) * videoHeight, time])
                         break
@@ -111,11 +111,12 @@ class Heatmap():
                     gap = (timen - time)
                     func_x = lambda coord: ((xn - x) / gap) * coord + x
                     func_y = lambda coord: ((yn - y) / gap) * coord + y
-                    for i in range(int(gap)):
+                    for i in range(0, int(gap), collection_frequency):
                         # Normalize the data according to the size of the video
                         results.append([(func_x(i) / screenWidth) * videoWidth, (func_y(i) / screenHeight) * videoHeight, time + i])
             except Exception as e:
                 continue
+
 
         return np.array(results)
 
